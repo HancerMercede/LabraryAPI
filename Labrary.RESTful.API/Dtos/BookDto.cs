@@ -5,6 +5,6 @@
         public int BookId { get; set; }
         public string BookName { get; set; }
         public string Tematic { get; set; }
-        public byte[] Image { get; set; }
+        public string Image { get; set; }
     }
 }
