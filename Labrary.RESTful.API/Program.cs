@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Adding controllers
 builder.Services.AddControllers();
 
 // DbContext
@@ -21,7 +23,9 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+// Mapping controllers 
 app.MapControllers();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -33,7 +37,7 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-// EndPoints
+// Book EndPoints
 app.MapGet("api/books", async (IBookService _service) => {
     var dtos = await _service.GetAll();
     return dtos is not null ? Results.Ok(dtos) : Results.StatusCode(404);
@@ -45,12 +49,8 @@ app.MapGet("api/books/{Id:int}", async (IBookService _service, int Id) =>
     return dtos is not null ? Results.Ok(dtos): Results.NotFound("There is nothing here.");
 }).WithName("GetBook");
 
-//app.MapPost("/create", async ([FromBody]BookCreateDto model, IBookService _service) =>
-//{
-//    await _service.Create(model);
-//    return Results.Created("GetBook", model);
-//});
-
-
-
+app.MapDelete("Delete/{Id:int}", (int Id, IBookService _service ) =>
+{
+    _service.Delete(Id);
+});
 app.Run();

@@ -11,7 +11,7 @@ namespace Labrary.RESTful.API.Controllers
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly ISaveFiles _savefiles;
-        private readonly  string? container = "Books";
+        private readonly string? container = "Books";
         public BookController(IBookService bookService, DataContext context, IMapper mapper, ISaveFiles savefiles)
         {
             _bookService = bookService;
@@ -45,12 +45,51 @@ namespace Labrary.RESTful.API.Controllers
                 _context.Add(dbEntity);
                 await _context.SaveChangesAsync();
                 await _transaction.CommitAsync();
-
-                return CreatedAtRoute("GetBook", new { Id = dbEntity.BookId }, model);
+                var dto = _mapper.Map<BookDto>(dbEntity);
+                return new CreatedAtRouteResult("GetBook", new { Id = dbEntity.BookId }, dto);
             }
             catch (Exception ex)
             {
                 await _transaction.RollbackAsync();
+                throw new Exception(ex.Message);
+            }
+           
+        }
+        [HttpPut("update/{Id:int}")]
+        [ProducesResponseType(202)]
+        public async Task<ActionResult<BookDto>> Put(int Id, [FromForm]BookUpdateDto model)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (Id is 0)
+                    return NotFound();
+                if (model is null)
+                    return NotFound();
+
+                var dbEntity = await _context?.Books?.SingleOrDefaultAsync(b => b.BookId == Id)!;
+
+                if (dbEntity is null)
+                    return NotFound();
+
+                if (model.Image != null)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await model.Image.CopyToAsync(memoryStream);
+                        var content = memoryStream.ToArray();
+                        var extention = Path.GetExtension(model.Image.FileName);
+                        dbEntity.Image = await _savefiles.EditarArchivo(content, extention, container, dbEntity.Image, model.Image.ContentType);
+                    }
+                }
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Accepted("GetBook", _mapper.Map<BookDto>(dbEntity));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
                 throw new Exception(ex.Message);
             }
         }

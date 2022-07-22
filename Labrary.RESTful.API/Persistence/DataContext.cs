@@ -13,7 +13,6 @@
             builder.Entity<Book>().HasKey(b => b.BookId);
             builder.Entity<Book>().Property(b => b.BookId).IsRequired();
             builder.Entity<Book>().Property(b => b.Tematic).HasMaxLength(50);
-            
         }
     }
 }

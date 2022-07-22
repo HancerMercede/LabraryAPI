@@ -4,14 +4,13 @@
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-        private readonly ISaveFiles _savefiles;
-        private readonly string container= "BooksImages";
-        public BookService(DataContext context, IMapper mapper, ISaveFiles savefiles)
+      
+        public BookService(DataContext context, IMapper mapper)
         {
-           _context = context;
+            _context = context;
             _mapper = mapper;
-            _savefiles = savefiles;
         }
+
         public async Task<IEnumerable<BookDto>> GetAll()
         {
             var dbEntities = await _context?.Books?.ToListAsync()!;
@@ -33,9 +32,28 @@
             return dto;
         }
 
-        public async Task<BookDto> Create(BookCreateDto model)
+
+        public async Task Delete(int Id)
         {
-            throw new NotImplementedException();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (Id == 0)
+                     return;
+
+                var dbEntity = await _context.Books?.SingleOrDefaultAsync(b => b.BookId == Id)!;
+                if(dbEntity is not null)
+                {
+                    _context.Remove(dbEntity);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

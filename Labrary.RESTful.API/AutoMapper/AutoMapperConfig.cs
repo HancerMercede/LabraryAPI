@@ -5,7 +5,8 @@
         public AutoMapperConfig()
         {
             CreateMap<Book, BookDto>().ReverseMap();
-            CreateMap<BookCreateDto, Book>().ReverseMap();
+            CreateMap<BookCreateDto, Book>();
+            CreateMap<BookUpdateDto, Book>();
         }
     }
 }
