@@ -31,8 +31,7 @@ namespace Labrary.RESTful.API.Migrations
 
                     b.Property<string>("BookName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")
                         .IsRequired()
