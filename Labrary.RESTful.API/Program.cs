@@ -19,6 +19,15 @@ builder.Services.AddAutoMapper(typeof(Program));
 // Custom Services
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddTransient<ISaveFiles, SaveLocalFile>();
+
+// Cors Policy
+builder.Services.AddCors(opts => {
+    opts.AddPolicy("AllowAll", policcy => policcy.AllowAnyMethod()
+    .AllowAnyOrigin()
+    .AllowAnyHeader());
+});
+
+
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -33,9 +42,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.UseCors("AllowAll");
 
 // Book EndPoints
 app.MapGet("api/books", async (IBookService _service) => {
@@ -53,4 +65,5 @@ app.MapDelete("Delete/{Id:int}", (int Id, IBookService _service ) =>
 {
     _service.Delete(Id);
 });
+
 app.Run();
