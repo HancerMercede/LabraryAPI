@@ -73,9 +73,9 @@ namespace Labrary.RESTful.API.Controllers
                 if (dbEntity is null)
                     return NotFound();
 
-                if (model.Image != null)
+                if (string.IsNullOrWhiteSpace(model.Image))
                 {
-                    var updateImage = Convert.FromBase64String(model.Image);
+                    var updateImage = Convert.FromBase64String(model.Image!);
                     dbEntity.Image = await _savefiles.EditarArchivo(updateImage, "jpg", container!,dbEntity.Image);
                 }
                 await _context.SaveChangesAsync();
