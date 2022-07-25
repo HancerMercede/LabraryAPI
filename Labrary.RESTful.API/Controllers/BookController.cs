@@ -23,33 +23,31 @@ namespace Labrary.RESTful.API.Controllers
         }
         [HttpPost]
         [Route("/create")]
-        [ProducesResponseType(200)]
-        public async Task<IActionResult> Post( BookCreateDto model)
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Post(BookCreateDto model)
         {
             using var _transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 if (model is null)
+                {
                     ArgumentNullException.ThrowIfNull(model);
-
+                    return NotFound();
+                }
 
                 var dbEntity = _mapper.Map<Book>(model);
 
-                if (model.Image != null)
+                if (!string.IsNullOrWhiteSpace(model.Image))
                 {
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        await model.Image.CopyToAsync(memoryStream);
-                        var content = memoryStream.ToArray();
-                        var extention = Path.GetExtension(model.Image.FileName);
-                        dbEntity.Image = await _savefiles.GuardarArchivo(content, extention, container, model.Image.ContentType);
-                    }
+                    var Image = Convert.FromBase64String(model.Image);
+                    dbEntity.Image = await _savefiles.GuardarArchivo(Image, "jpg", container!);
                 }
                 _context.Add(dbEntity);
                 await _context.SaveChangesAsync();
                 await _transaction.CommitAsync();
                 var dto = _mapper.Map<BookDto>(dbEntity);
-                return Ok("Created successfully.");
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -60,7 +58,7 @@ namespace Labrary.RESTful.API.Controllers
         }
         [HttpPut("update/{Id:int}")]
         [ProducesResponseType(202)]
-        public async Task<ActionResult<BookDto>> Put(int Id, [FromForm]BookUpdateDto model)
+        public async Task<ActionResult<BookDto>> Put(int Id, BookUpdateDto model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -77,13 +75,8 @@ namespace Labrary.RESTful.API.Controllers
 
                 if (model.Image != null)
                 {
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        await model.Image.CopyToAsync(memoryStream);
-                        var content = memoryStream.ToArray();
-                        var extention = Path.GetExtension(model.Image.FileName);
-                        dbEntity.Image = await _savefiles.EditarArchivo(content, extention, container, dbEntity.Image, model.Image.ContentType);
-                    }
+                    var updateImage = Convert.FromBase64String(model.Image);
+                    dbEntity.Image = await _savefiles.EditarArchivo(updateImage, "jpg", container!,dbEntity.Image);
                 }
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -105,6 +98,7 @@ namespace Labrary.RESTful.API.Controllers
             {
                 if (Id == 0)
                     return NotFound("There is nothing with this Id");
+
                 var exists = await _context.Books?.AnyAsync(b => b.BookId == Id)!;
                 if (exists)
                 { 
