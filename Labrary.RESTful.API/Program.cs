@@ -22,9 +22,10 @@ builder.Services.AddTransient<ISaveFiles, SaveLocalFile>();
 
 // Cors Policy
 builder.Services.AddCors(opts => {
-    opts.AddPolicy("AllowAll", policcy => policcy.AllowAnyMethod()
-    .AllowAnyOrigin()
-    .AllowAnyHeader());
+    opts.AddPolicy("AllowAll", policy => 
+    policy.AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowAnyOrigin());
 });
 
 
@@ -49,6 +50,7 @@ app.UseStaticFiles();
 
 app.UseCors("AllowAll");
 
+
 // Book EndPoints
 app.MapGet("api/books", async (IBookService _service) => {
     var dtos = await _service.GetAll();
@@ -61,9 +63,5 @@ app.MapGet("api/books/{Id:int}", async (IBookService _service, int Id) =>
     return dtos is not null ? Results.Ok(dtos): Results.NotFound("There is nothing here.");
 }).WithName("GetBook");
 
-app.MapDelete("Delete/{Id:int}", (int Id, IBookService _service ) =>
-{
-    _service.Delete(Id);
-});
 
 app.Run();

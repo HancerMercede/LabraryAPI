@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Labrary.RESTful.API.Controllers
 {
-    [Route("api/books")]
+
     [ApiController]
+    [Route("api/books")]
+    [Produces("appliccation/json")]
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -20,8 +22,9 @@ namespace Labrary.RESTful.API.Controllers
             _savefiles = savefiles;
         }
         [HttpPost]
+        [Route("/create")]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> Post([FromForm] BookCreateDto model)
+        public async Task<IActionResult> Post( BookCreateDto model)
         {
             using var _transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -46,7 +49,7 @@ namespace Labrary.RESTful.API.Controllers
                 await _context.SaveChangesAsync();
                 await _transaction.CommitAsync();
                 var dto = _mapper.Map<BookDto>(dbEntity);
-                return new CreatedAtRouteResult("GetBook", new { Id = dbEntity.BookId }, dto);
+                return Ok("Created successfully.");
             }
             catch (Exception ex)
             {
@@ -86,6 +89,34 @@ namespace Labrary.RESTful.API.Controllers
                 await transaction.CommitAsync();
 
                 return Accepted("GetBook", _mapper.Map<BookDto>(dbEntity));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpDelete("{Id:int}")]
+        public async Task<IActionResult> Delete(int Id)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (Id == 0)
+                    return NotFound("There is nothing with this Id");
+                var exists = await _context.Books?.AnyAsync(b => b.BookId == Id)!;
+                if (exists)
+                { 
+                 var dbEntity = await _context.Books.FirstOrDefaultAsync(b => b.BookId == Id);
+                    if (dbEntity == null)
+                        return NotFound();
+                    _context.Books.Remove(dbEntity);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return NoContent();
+                }
+                return BadRequest();
             }
             catch (Exception ex)
             {

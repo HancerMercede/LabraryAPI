@@ -6,6 +6,5 @@ namespace Labrary.RESTful.API.Contracts
     {
         Task<IEnumerable<BookDto>> GetAll();
         Task<BookDto> GetById(int Id);
-        Task Delete(int Id);
     }
 }

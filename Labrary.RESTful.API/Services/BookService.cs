@@ -31,29 +31,5 @@
             var dto = _mapper.Map<BookDto>(dbEntity);
             return dto;
         }
-
-
-        public async Task Delete(int Id)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                if (Id == 0)
-                     return;
-
-                var dbEntity = await _context.Books?.SingleOrDefaultAsync(b => b.BookId == Id)!;
-                if(dbEntity is not null)
-                {
-                    _context.Remove(dbEntity);
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                throw new Exception(ex.Message);
-            }
-        }
     }
 }
