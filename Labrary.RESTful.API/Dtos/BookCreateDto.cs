@@ -10,6 +10,6 @@ namespace Labrary.RESTful.API.Dtos
         public string? Tematic { get; set; }
         [PesoArchivoValidacion(PesoMaximoEnMegaBytes: 4)]
         [TipoArchivoValidacion(grupoTipoArchivo: GrupoTipoArchivo.Imagen)]
-        public IFormFile? Image { get; set; }
+        public string? Image { get; set; }
     }
 }
