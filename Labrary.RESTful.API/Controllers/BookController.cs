@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-namespace Labrary.RESTful.API.Controllers
+﻿namespace Labrary.RESTful.API.Controllers
 {
 
     [ApiController]
@@ -9,11 +6,15 @@ namespace Labrary.RESTful.API.Controllers
     [Produces("appliccation/json")]
     public class BookController : ControllerBase
     {
+        #region Properties
         private readonly IBookService _bookService;
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly ISaveFiles _savefiles;
         private readonly string? container = "Books";
+
+        #endregion
+        #region Constructor
         public BookController(IBookService bookService, DataContext context, IMapper mapper, ISaveFiles savefiles)
         {
             _bookService = bookService;
@@ -21,6 +22,8 @@ namespace Labrary.RESTful.API.Controllers
             _mapper = mapper;
             _savefiles = savefiles;
         }
+        #endregion
+        #region Actions
         [HttpPost]
         [Route("/create")]
         [ProducesResponseType(200)]
@@ -124,5 +127,6 @@ namespace Labrary.RESTful.API.Controllers
                 throw new Exception(ex.Message);
             }
         }
+        #endregion
     }
 }
